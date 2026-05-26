@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -16,13 +17,47 @@ public class ClienteRest {
 
     private static final String URL_BASE = "http://localhost:8080/api";
 
-    public static boolean login(String usuario, String passwordCifrada) {
+    // Sustituye ÚNICAMENTE este método en tu clase ClienteRest original
+    public static String login(String usuario, String passwordCifrada) {
         try {
             URL url = new URL(URL_BASE + "/login");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json; utf-8");
-            con.setRequestProperty("Accept", "application/json");
+            con.setDoOutput(true);
+
+            String jsonInputString = "{\"usuario\":\"" + usuario + "\", \"password\":\"" + passwordCifrada + "\"}";
+            try (OutputStream os = con.getOutputStream()) {
+                os.write(jsonInputString.getBytes("utf-8"));
+            }
+
+            if (con.getResponseCode() == 200) {
+                // Leemos la respuesta tal cual viene del servidor
+                BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"));
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                br.close();
+
+                // Si la respuesta es {"rol":"ADMINISTRADOR"}, esto extrae "ADMINISTRADOR"
+                String res = response.toString();
+                if (res.contains("ADMINISTRADOR")) return "ADMINISTRADOR";
+                if (res.contains("EMPLEADO")) return "EMPLEADO";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static boolean registrarEmpleado(String usuario, String passwordCifrada) {
+        try {
+            URL url = new URL(URL_BASE + "/empleados");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type", "application/json; utf-8");
             con.setDoOutput(true);
 
             String jsonInputString = "{\"usuario\":\"" + usuario + "\", \"password\":\"" + passwordCifrada + "\"}";
@@ -33,13 +68,14 @@ public class ClienteRest {
             }
 
             int code = con.getResponseCode();
-            return code == 200;
+            return code == 200; // Si devuelve 200, el registro fue un éxito
 
         } catch (Exception e) {
-            System.out.println("Error en la conexión REST: " + e.getMessage());
+            System.out.println("Error en el registro: " + e.getMessage());
             return false;
         }
     }
+
 
     public static List<String> obtenerHistorial() {
         List<String> mensajes = new ArrayList<>();

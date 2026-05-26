@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="CENTER" prefHeight="400.0" prefWidth="350.0" spacing="15.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.iesalandalus.chatdam.chatdam_cliente.controller.LoginController">
+    <padding>
+        <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+    </padding>
+
+    <Label text="Chat Corporativo" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #24292f;" />
+    <Label text="Inicia sesión para continuar" style="-fx-text-fill: #57606a;" />
+
+    <VBox spacing="5.0">
+        <VBox.margin>
+            <Insets top="10.0" />
+        </VBox.margin>
+        <Label text="Usuario:" style="-fx-font-weight: bold;"/>
+        <TextField fx:id="txtUsuario" promptText="Ej: admin" />
+    </VBox>
+
+    <VBox spacing="5.0">
+        <Label text="Contraseña:" style="-fx-font-weight: bold;"/>
+        <PasswordField fx:id="txtPassword" promptText="Introduce tu contraseña" />
+    </VBox>
+
+    <Label fx:id="lblError" text="Error de conexión" textFill="#cf222e" visible="false" />
+
+    <Button fx:id="btnLogin" mnemonicParsing="false" onAction="#procesarLogin" prefWidth="250.0" styleClass="accent" text="Iniciar Sesión">
+        <VBox.margin>
+            <Insets top="10.0" />
+        </VBox.margin>
+    </Button>
+    <Button fx:id="btnSalir" mnemonicParsing="false" onAction="#salir" prefWidth="250.0" text="Salir" />
+</VBox>
