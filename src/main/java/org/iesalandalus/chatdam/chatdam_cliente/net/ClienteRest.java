@@ -5,10 +5,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,20 +18,25 @@ public class ClienteRest {
 
     public static boolean login(String usuario, String passwordCifrada) {
         try {
-            String json = "{\"usuario\":\"" + usuario + "\", \"password\":\"" + passwordCifrada + "\"}";
+            URL url = new URL(URL_BASE + "/login");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type", "application/json; utf-8");
+            con.setRequestProperty("Accept", "application/json");
+            con.setDoOutput(true);
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(URL_BASE + "/login"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(json))
-                    .build();
+            String jsonInputString = "{\"usuario\":\"" + usuario + "\", \"password\":\"" + passwordCifrada + "\"}";
 
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            try (OutputStream os = con.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
 
-            return response.statusCode() == 200;
+            int code = con.getResponseCode();
+            return code == 200;
+
         } catch (Exception e) {
-            System.err.println("Error en la conexión REST: " + e.getMessage());
+            System.out.println("Error en la conexión REST: " + e.getMessage());
             return false;
         }
     }
@@ -39,26 +44,24 @@ public class ClienteRest {
     public static List<String> obtenerHistorial() {
         List<String> mensajes = new ArrayList<>();
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(URL_BASE + "/mensajes"))
-                    .GET()
-                    .build();
+            URL url = new URL(URL_BASE + "/mensajes");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
 
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200) {
-                // Parseamos el JSON que nos devuelve el servidor usando Gson
-                JsonArray jsonArray = JsonParser.parseString(response.body()).getAsJsonArray();
+            int code = con.getResponseCode();
+            if (code == 200) {
+                InputStreamReader reader = new InputStreamReader(con.getInputStream(), "utf-8");
+                JsonArray jsonArray = JsonParser.parseReader(reader).getAsJsonArray();
                 for (JsonElement elemento : jsonArray) {
                     JsonObject obj = elemento.getAsJsonObject();
                     String autor = obj.get("autor").getAsString();
                     String texto = obj.get("texto").getAsString();
                     mensajes.add(autor + ": " + texto);
                 }
+                reader.close();
             }
         } catch (Exception e) {
-            System.err.println("Error obteniendo el historial: " + e.getMessage());
+            System.out.println("Error obteniendo el historial: " + e.getMessage());
         }
         return mensajes;
     }
