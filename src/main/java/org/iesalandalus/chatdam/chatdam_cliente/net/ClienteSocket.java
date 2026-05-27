@@ -2,17 +2,20 @@ package org.iesalandalus.chatdam.chatdam_cliente.net;
 
 import javafx.application.Platform;
 import javafx.scene.control.TextArea;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class ClienteSocket {
 
+    private final String usuario;
+    private final TextArea areaMensajes;
     private Socket socket;
-    private DataInputStream in;
-    private DataOutputStream out;
-    private String usuario;
-    private TextArea areaMensajes;
+    private DataOutputStream salida;
+    private DataInputStream entrada;
 
     public ClienteSocket(String usuario, TextArea areaMensajes) {
         this.usuario = usuario;
@@ -20,41 +23,50 @@ public class ClienteSocket {
     }
 
     public void conectar() {
-        try {
-            socket = new Socket("localhost", 4444);
-            in = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
+        new Thread(() -> {
+            try {
+                // Conectamos al servidor de sockets (puerto 4444)
+                socket = new Socket("localhost", 4444);
 
-            Thread hiloEscucha = new Thread(() -> {
-                try {
-                    while (true) {
-                        String mensajeRecibido = in.readUTF();
-                        // Platform.runLater es obligatorio en JavaFX para actualizar la interfaz desde otro hilo
-                        Platform.runLater(() -> areaMensajes.appendText(mensajeRecibido + "\n"));
-                    }
-                } catch (Exception e) {
-                    Platform.runLater(() -> areaMensajes.appendText("Desconectado del servidor.\n"));
+                // Usamos DataOutputStream y DataInputStream para coincidir con el servidor
+                salida = new DataOutputStream(socket.getOutputStream());
+                entrada = new DataInputStream(socket.getInputStream());
+
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+                // Bucle infinito para escuchar mensajes de OTROS usuarios
+                while (true) {
+                    String mensajeServidor = entrada.readUTF(); // Leemos en formato UTF
+                    String fechaHora = "[" + LocalDateTime.now().format(formatter) + "] ";
+
+                    Platform.runLater(() -> areaMensajes.appendText(fechaHora + mensajeServidor + "\n"));
                 }
-            });
-            hiloEscucha.setDaemon(true);
-            hiloEscucha.start();
 
-        } catch (Exception e) {
-            Platform.runLater(() -> areaMensajes.appendText("Error: No se pudo conectar al servidor TCP.\n"));
-        }
+            } catch (Exception e) {
+                Platform.runLater(() -> areaMensajes.appendText("⚠️ Conexión con el servidor de chat perdida.\n"));
+            }
+        }).start();
     }
 
     public void enviarMensaje(String texto) {
-        try {
-            if (socket != null && !socket.isClosed()) {
-                String mensajeCompleto = usuario + ": " + texto;
-                out.writeUTF(mensajeCompleto);
-                out.flush();
-                // Escribimos nuestro propio mensaje en nuestra pantalla
-                Platform.runLater(() -> areaMensajes.appendText("Tú: " + texto + "\n"));
+        if (salida != null && !texto.trim().isEmpty()) {
+            try {
+                // El servidor espera que le enviemos el formato "Nombre: Mensaje"
+                String mensajeFormateado = usuario + ": " + texto;
+
+                // Enviamos al servidor
+                salida.writeUTF(mensajeFormateado);
+                salida.flush();
+
+                // Como el servidor no nos devuelve nuestro propio mensaje, lo dibujamos en nuestra pantalla
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                String fechaHora = "[" + LocalDateTime.now().format(formatter) + "] ";
+
+                Platform.runLater(() -> areaMensajes.appendText(fechaHora + mensajeFormateado + "\n"));
+
+            } catch (Exception e) {
+                System.out.println("Error al enviar el mensaje: " + e.getMessage());
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }

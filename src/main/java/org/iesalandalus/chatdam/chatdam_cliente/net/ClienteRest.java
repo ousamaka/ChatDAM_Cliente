@@ -92,7 +92,15 @@ public class ClienteRest {
                     JsonObject obj = elemento.getAsJsonObject();
                     String autor = obj.get("autor").getAsString();
                     String texto = obj.get("texto").getAsString();
-                    mensajes.add(autor + ": " + texto);
+
+                    // NUEVO: Capturamos la fecha y la formateamos
+                    String fechaStr = "";
+                    if (obj.has("fecha") && !obj.get("fecha").isJsonNull()) {
+                        fechaStr = obj.get("fecha").getAsString();
+                        fechaStr = "[" + fechaStr.replace("T", " ").split("\\.")[0] + "] ";
+                    }
+
+                    mensajes.add(fechaStr + autor + ": " + texto);
                 }
                 reader.close();
             }

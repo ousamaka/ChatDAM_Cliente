@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -13,7 +12,7 @@
     </padding>
 
     <Label style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Alta de Empleado" />
-    <Label style="-fx-text-fill: #57606a;" text="Registra un nuevo usuario en la nube" />
+    <Label style="-fx-text-fill: #57606a;" text="Registra un nuevo usuario en la BD" />
 
     <VBox spacing="5.0">
         <Label style="-fx-font-weight: bold;" text="Nuevo Usuario:" />

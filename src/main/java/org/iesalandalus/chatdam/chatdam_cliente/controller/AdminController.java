@@ -21,25 +21,32 @@ public class AdminController {
         String password = txtNuevaPassword.getText();
 
         if (usuario.isEmpty() || password.isEmpty()) {
-            lblMensaje.setText("Rellena todos los campos.");
-            lblMensaje.setVisible(true);
+            mostrarMensaje("Rellena todos los campos.", false);
             return;
         }
 
+        // Ciframos la contraseña y enviamos
         String passwordCifrada = Seguridad.hashearPassword(password);
-        if (ClienteRest.registrarEmpleado(usuario, passwordCifrada)) {
-            lblMensaje.setText("¡Empleado registrado!");
-            lblMensaje.setVisible(true);
+        boolean exito = ClienteRest.registrarEmpleado(usuario, passwordCifrada);
+
+        if (exito) {
+            mostrarMensaje("Empleado registrado con éxito.", true);
             txtNuevoUsuario.clear();
             txtNuevaPassword.clear();
         } else {
-            lblMensaje.setText("Error en el registro.");
-            lblMensaje.setVisible(true);
+            mostrarMensaje("Error: El usuario ya existe o falló la red.", false);
         }
     }
 
     @FXML
     private void cerrar(ActionEvent event) {
-        ((Stage) txtNuevoUsuario.getScene().getWindow()).close();
+        Stage stage = (Stage) txtNuevoUsuario.getScene().getWindow();
+        stage.close();
+    }
+
+    private void mostrarMensaje(String texto, boolean exito) {
+        lblMensaje.setText(texto);
+        lblMensaje.setTextFill(exito ? javafx.scene.paint.Color.web("#2da44e") : javafx.scene.paint.Color.web("#cf222e"));
+        lblMensaje.setVisible(true);
     }
 }

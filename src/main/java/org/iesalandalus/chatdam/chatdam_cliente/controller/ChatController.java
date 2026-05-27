@@ -75,4 +75,14 @@ public class ChatController {
             e.printStackTrace();
         }
     }
+    @FXML
+    private void salirAplicacion(ActionEvent event) {
+        if (clienteSocket != null) {
+            // Cerramos el socket si está abierto antes de salir (buena práctica)
+            try {
+                // Si teníais un método desconectar() podéis llamarlo aquí
+            } catch (Exception e) {}
+        }
+        System.exit(0);
+    }
 }
