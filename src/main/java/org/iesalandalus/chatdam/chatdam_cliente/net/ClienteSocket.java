@@ -2,20 +2,15 @@ package org.iesalandalus.chatdam.chatdam_cliente.net;
 
 import javafx.application.Platform;
 import javafx.scene.control.TextArea;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.net.Socket;
+import java.net.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class ClienteSocket {
-
     private final String usuario;
     private final TextArea areaMensajes;
-    private Socket socket;
-    private DataOutputStream salida;
-    private DataInputStream entrada;
+    private MulticastSocket socket;
+    private InetAddress grupo;
 
     public ClienteSocket(String usuario, TextArea areaMensajes) {
         this.usuario = usuario;
@@ -25,48 +20,26 @@ public class ClienteSocket {
     public void conectar() {
         new Thread(() -> {
             try {
-                // Conectamos al servidor de sockets (puerto 4444)
-                socket = new Socket("localhost", 4444);
-
-                // Usamos DataOutputStream y DataInputStream para coincidir con el servidor
-                salida = new DataOutputStream(socket.getOutputStream());
-                entrada = new DataInputStream(socket.getInputStream());
-
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-                // Bucle infinito para escuchar mensajes de OTROS usuarios
+                grupo = InetAddress.getByName("225.0.0.1");
+                socket = new MulticastSocket(4444);
+                socket.joinGroup(grupo);
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 while (true) {
-                    String mensajeServidor = entrada.readUTF(); // Leemos en formato UTF
-                    String fechaHora = "[" + LocalDateTime.now().format(formatter) + "] ";
-
-                    Platform.runLater(() -> areaMensajes.appendText(fechaHora + mensajeServidor + "\n"));
+                    DatagramPacket p = new DatagramPacket(new byte[1024], 1024);
+                    socket.receive(p);
+                    String msj = new String(p.getData(), 0, p.getLength(), "utf-8");
+                    Platform.runLater(() -> areaMensajes.appendText("[" + LocalDateTime.now().format(fmt) + "] " + msj + "\n"));
                 }
-
             } catch (Exception e) {
-                Platform.runLater(() -> areaMensajes.appendText("⚠️ Conexión con el servidor de chat perdida.\n"));
+                Platform.runLater(() -> areaMensajes.appendText("⚠️ Error Multicast.\n"));
             }
         }).start();
     }
 
     public void enviarMensaje(String texto) {
-        if (salida != null && !texto.trim().isEmpty()) {
-            try {
-                // El servidor espera que le enviemos el formato "Nombre: Mensaje"
-                String mensajeFormateado = usuario + ": " + texto;
-
-                // Enviamos al servidor
-                salida.writeUTF(mensajeFormateado);
-                salida.flush();
-
-                // Como el servidor no nos devuelve nuestro propio mensaje, lo dibujamos en nuestra pantalla
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                String fechaHora = "[" + LocalDateTime.now().format(formatter) + "] ";
-
-                Platform.runLater(() -> areaMensajes.appendText(fechaHora + mensajeFormateado + "\n"));
-
-            } catch (Exception e) {
-                System.out.println("Error al enviar el mensaje: " + e.getMessage());
-            }
-        }
+        try {
+            byte[] buf = (usuario + ": " + texto).getBytes("utf-8");
+            socket.send(new DatagramPacket(buf, buf.length, grupo, 4444));
+        } catch (Exception e) { e.printStackTrace(); }
     }
 }
