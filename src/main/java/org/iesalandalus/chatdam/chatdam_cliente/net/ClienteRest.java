@@ -109,4 +109,25 @@ public class ClienteRest {
         }
         return mensajes;
     }
+
+    public static void guardarMensaje(String autor, String texto) {
+        try {
+            // AHORA SÍ usamos la constante URL_BASE de tu clase ("http://localhost:8080/api")
+            URL url = new URL(URL_BASE + "/mensajes");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Content-Type", "application/json; utf-8");
+            con.setDoOutput(true);
+
+            String jsonInputString = "{\"autor\":\"" + autor + "\", \"texto\":\"" + texto + "\"}";
+
+            try (OutputStream os = con.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+            con.getResponseCode(); // Ejecuta la petición
+        } catch (Exception e) {
+            System.out.println("Error al guardar mensaje en BD: " + e.getMessage());
+        }
+    }
 }
