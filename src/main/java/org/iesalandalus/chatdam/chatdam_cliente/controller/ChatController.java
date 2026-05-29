@@ -32,10 +32,10 @@ public class ChatController {
         btnAdmin.setVisible(esAdmin);
         btnAdmin.setManaged(esAdmin);
 
-        // 1. Cargar Historial
+        //Cargar Historial
         cargarHistorial();
 
-        // 2. IMPORTANTE: Inicializamos el socket AQUÍ, nada más entrar
+        //Inicializamos el shocket nada mas empezar
         this.clienteSocket = new ClienteSocket(usuario, areaMensajes);
         this.clienteSocket.conectar();
     }
@@ -69,7 +69,7 @@ public class ChatController {
     @FXML
     private void abrirGestionEmpleados(ActionEvent event) {
         try {
-            // RUTA EXACTA DE RECURSOS
+            // ruta de los recursos
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/iesalandalus/chatdam/chatdam_cliente/view/admin.fxml"));
             Parent root = loader.load();
             Stage stage = new Stage();
@@ -84,9 +84,9 @@ public class ChatController {
     @FXML
     private void salirAplicacion(ActionEvent event) {
         if (clienteSocket != null) {
-            // Cerramos el socket si está abierto antes de salir (buena práctica)
+            // Cerramos el socket si está abierto antes de salir
             try {
-                // Si teníais un método desconectar() podéis llamarlo aquí
+
             } catch (Exception e) {}
         }
         System.exit(0);

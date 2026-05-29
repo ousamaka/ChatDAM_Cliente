@@ -17,7 +17,6 @@ public class ClienteRest {
 
     private static final String URL_BASE = "http://localhost:8080/api";
 
-    // Sustituye ÚNICAMENTE este método en tu clase ClienteRest original
     public static String login(String usuario, String passwordCifrada) {
         try {
             URL url = new URL(URL_BASE + "/login");
@@ -93,7 +92,7 @@ public class ClienteRest {
                     String autor = obj.get("autor").getAsString();
                     String texto = obj.get("texto").getAsString();
 
-                    // NUEVO: Capturamos la fecha y la formateamos
+                    //Capturamos la fecha y la formateamos
                     String fechaStr = "";
                     if (obj.has("fecha") && !obj.get("fecha").isJsonNull()) {
                         fechaStr = obj.get("fecha").getAsString();
@@ -112,7 +111,6 @@ public class ClienteRest {
 
     public static void guardarMensaje(String autor, String texto) {
         try {
-            // AHORA SÍ usamos la constante URL_BASE de tu clase ("http://localhost:8080/api")
             URL url = new URL(URL_BASE + "/mensajes");
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
