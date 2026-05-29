@@ -55,7 +55,13 @@ public class ChatController {
     private void enviarMensaje(ActionEvent event) {
         String texto = campoTexto.getText();
         if (!texto.trim().isEmpty()) {
+            // 1. Envia el mensaje por red a los demás (Multicast como decia el profe)
             clienteSocket.enviarMensaje(texto);
+
+            // 2. Guarda el mensaje en la base de datos (REST) usando la variable exacta 'usuario'
+            ClienteRest.guardarMensaje(usuario, texto);
+
+            // 3. Limpia el campo
             campoTexto.clear();
         }
     }
